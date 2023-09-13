@@ -3,15 +3,32 @@
 
 <head>
 	<style>
-		html,
-		body {
-			/* height: 200px; */
-			width: 350px;
-		}
-
 		.urlItem {
 			display: flex;
 			justify-content: space-between;
+		}
+
+		.actions {
+			display: flex;
+			justify-content: space-around;
+		}
+
+		.action {
+			border: none;
+			outline: none;
+			border-radius: 5px;
+			padding: 5px 15px;
+			cursor: pointer;
+		}
+
+		.clear-action {
+			background-color: red;
+			color: white;
+		}
+
+		.export-action {
+			background-color: green;
+			color: white;
 		}
 
 		#status {
@@ -34,8 +51,15 @@
 <body>
 	<div class="" style="width: 100%;">
 		<h3 class="" style="text-align: center;">Browsing History</h3>
-		<div id="status"></div>
-		<div id="urlList">
+		<div class="actions">
+			<button id="clearBtn" class="action clear-action">Clear</button>
+			<button id="exportTxtBtn" class="action export-action">Export as Text</button>
+			<button id="exportCsvBtn" class="action export-action">Export as CSV</button>
+		</div>
+		<hr />
+		<div id="status">
+		</div>
+		<div id="urlList" style="width: 400px;">
 		</div>
 	</div>
 
