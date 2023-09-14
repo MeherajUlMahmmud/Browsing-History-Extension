@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	var clearBtn = document.getElementById('clearBtn');
 	var exportTxtBtn = document.getElementById('exportTxtBtn');
 	var exportCsvBtn = document.getElementById('exportCsvBtn');
+	var paginationSec = document.getElementById('pagination');
 
 	chrome.storage.local.get(['urlList'], function (result) {
 		var urlList = result.urlList;
@@ -22,7 +23,115 @@ document.addEventListener('DOMContentLoaded', function () {
 			var sortedUrlList = urlList.sort(function (a, b) {
 				return b.timestamp - a.timestamp;
 			});
-			sortedUrlList.forEach(function (url) {
+			if (sortedUrlList.length > 50) {
+				sortedUrlList = sortedUrlList.slice(0, 50);
+			}
+			// paginate here
+			var page = 1;
+			var perPage = 10;
+			var totalPage = Math.ceil(sortedUrlList.length / perPage);
+
+			var paginationTopSpan = document.createElement('span');
+			paginationTopSpan.classList.add('paginationTop');
+			paginationTopSpan.innerHTML = 'Page ' + page + ' of ' + totalPage + ' pages | Total ' + sortedUrlList.length + ' records';
+
+			var paginationActions = document.createElement('div');
+			paginationActions.classList.add('pagination-actions');
+			var prevBtn = document.createElement('button');
+			prevBtn.appendChild(document.createTextNode('Prev'));
+			prevBtn.classList.add('prev');
+			prevBtn.addEventListener('click', function (e) {
+				e.preventDefault();
+				if (page > 1) {
+					page--;
+					var start = (page - 1) * perPage;
+					var end = start + perPage;
+					history.innerHTML = '';
+					paginationTopSpan.innerHTML = 'Page ' + page + ' of ' + totalPage + ' pages | Total ' + sortedUrlList.length + ' records';
+					sortedUrlList.slice(start, end).forEach(function (url) {
+						var hostname = url.hostname;
+						var li = document.createElement('li');
+						var span = document.createElement('span');
+						var btn = document.createElement('button');
+						span.innerHTML = hostname + ' -- ' + new Date(url.timestamp).toLocaleString();
+						span.classList.add('url');
+						span.addEventListener('click', function (e) {
+							e.preventDefault();
+							console.log(hostname);
+							chrome.tabs.create({ url: hostname });
+						});
+						btn.appendChild(document.createTextNode('Delete'));
+						btn.addEventListener('click', function (e) {
+							e.preventDefault();
+							var index = urlList.findIndex(function (e) { return e.hostname == url.hostname; });
+							if (index !== -1) {
+								urlList.splice(index, 1);
+
+								chrome.storage.local.set({ 'urlList': urlList }, function () {
+									li.remove();
+								});
+							}
+						});
+						li.classList.add('urlItem');
+						li.appendChild(span);
+						li.appendChild(btn);
+						history.appendChild(li);
+					});
+				}
+			});
+
+			var nextBtn = document.createElement('button');
+			nextBtn.appendChild(document.createTextNode('Next'));
+			nextBtn.classList.add('next');
+			nextBtn.addEventListener('click', function (e) {
+				e.preventDefault();
+				if (page < totalPage) {
+					page++;
+					var start = (page - 1) * perPage;
+					var end = start + perPage;
+					history.innerHTML = '';
+					paginationTopSpan.innerHTML = 'Page ' + page + ' of ' + totalPage + ' pages | Total ' + sortedUrlList.length + ' records';
+					paginationSec.appendChild(paginationTopSpan);
+					sortedUrlList.slice(start, end).forEach(function (url) {
+						var hostname = url.hostname;
+						var li = document.createElement('li');
+						var span = document.createElement('span');
+						var btn = document.createElement('button');
+						span.innerHTML = hostname + ' -- ' + new Date(url.timestamp).toLocaleString();
+						span.classList.add('url');
+						span.addEventListener('click', function (e) {
+							e.preventDefault();
+							console.log(hostname);
+							chrome.tabs.create({ url: hostname });
+						});
+						btn.appendChild(document.createTextNode('Delete'));
+						btn.addEventListener('click', function (e) {
+							e.preventDefault();
+							var index = urlList.findIndex(function (e) { return e.hostname == url.hostname; });
+							if (index !== -1) {
+								urlList.splice(index, 1);
+
+								chrome.storage.local.set({ 'urlList': urlList }, function () {
+									li.remove();
+								});
+							}
+						});
+						li.classList.add('urlItem');
+						li.appendChild(span);
+						li.appendChild(btn);
+						history.appendChild(li);
+					});
+				}
+			});
+
+			paginationActions.appendChild(prevBtn);
+			paginationActions.appendChild(nextBtn);
+			paginationSec.appendChild(paginationTopSpan);
+			paginationSec.appendChild(paginationActions);
+
+			var start = (page - 1) * perPage;
+			var end = start + perPage;
+			sortedUrlList.slice(start, end).forEach(function (url) {
 				var hostname = url.hostname;
 				var li = document.createElement('li');
 				var span = document.createElement('span');

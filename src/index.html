@@ -3,6 +3,13 @@
 
 <head>
 	<style>
+		.heading {
+			margin: 0;
+			font-size: 20px;
+			text-align: center;
+			margin-bottom: 10px;
+		}
+
 		.urlItem {
 			display: flex;
 			justify-content: space-between;
@@ -31,11 +38,6 @@
 			color: white;
 		}
 
-		#status {
-			display: flex;
-			justify-content: space-between;
-		}
-
 		.url {
 			cursor: pointer;
 			color: blue;
@@ -45,21 +47,38 @@
 			text-overflow: ellipsis;
 			white-space: nowrap;
 		}
+
+		.pagination {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			margin-top: 10px;
+		}
+
+		.paginationTop {
+			text-align: center;
+		}
+
+		.pagination-actions {
+			display: flex;
+			justify-content: space-around;
+			margin-top: 10px;
+		}
 	</style>
 </head>
 
 <body>
 	<div class="" style="width: 100%;">
-		<h3 class="" style="text-align: center;">Browsing History</h3>
+		<h3 class="heading">Browsing History</h3>
 		<div class="actions">
 			<button id="clearBtn" class="action clear-action">Clear</button>
 			<button id="exportTxtBtn" class="action export-action">Export as Text</button>
 			<button id="exportCsvBtn" class="action export-action">Export as CSV</button>
 		</div>
 		<hr />
-		<div id="status">
-		</div>
 		<div id="urlList" style="width: 400px;">
+		</div>
+		<div class="pagination" id="pagination">
 		</div>
 	</div>
 
