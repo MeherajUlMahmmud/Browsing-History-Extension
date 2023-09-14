@@ -12,12 +12,15 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 		if (urlList.length == 0) {
 			var span = document.createElement('span');
-			span.style.color = 'red';
-			span.style.fontWeight = 'bold';
-			span.style.fontSize = '20px';
-			span.style.textAlign = 'center';
+			span.classList.add('no-history');
 			span.appendChild(document.createTextNode('No history'));
 			history.appendChild(span);
+			exportTxtBtn.disabled = true;
+			exportCsvBtn.disabled = true;
+			clearBtn.disabled = true;
+			exportTxtBtn.classList.add('disabled');
+			exportCsvBtn.classList.add('disabled');
+			clearBtn.classList.add('disabled');
 		} else {
 			// sort by timestamp
 			var sortedUrlList = urlList.sort(function (a, b) {
@@ -52,7 +55,6 @@ document.addEventListener('DOMContentLoaded', function () {
 						var hostname = url.hostname;
 						var li = document.createElement('li');
 						var span = document.createElement('span');
-						var btn = document.createElement('button');
 						span.innerHTML = hostname + ' -- ' + new Date(url.timestamp).toLocaleString();
 						span.classList.add('url');
 						span.addEventListener('click', function (e) {
@@ -60,6 +62,8 @@ document.addEventListener('DOMContentLoaded', function () {
 							console.log(hostname);
 							chrome.tabs.create({ url: hostname });
 						});
+						var btn = document.createElement('button');
+						btn.classList.add('delete');
 						btn.appendChild(document.createTextNode('Delete'));
 						btn.addEventListener('click', function (e) {
 							e.preventDefault();
@@ -96,7 +100,6 @@ document.addEventListener('DOMContentLoaded', function () {
 						var hostname = url.hostname;
 						var li = document.createElement('li');
 						var span = document.createElement('span');
-						var btn = document.createElement('button');
 						span.innerHTML = hostname + ' -- ' + new Date(url.timestamp).toLocaleString();
 						span.classList.add('url');
 						span.addEventListener('click', function (e) {
@@ -104,6 +107,8 @@ document.addEventListener('DOMContentLoaded', function () {
 							console.log(hostname);
 							chrome.tabs.create({ url: hostname });
 						});
+						var btn = document.createElement('button');
+						btn.classList.add('delete');
 						btn.appendChild(document.createTextNode('Delete'));
 						btn.addEventListener('click', function (e) {
 							e.preventDefault();
@@ -129,13 +134,94 @@ document.addEventListener('DOMContentLoaded', function () {
 			paginationSec.appendChild(paginationTopSpan);
 			paginationSec.appendChild(paginationActions);
 
+
+			clearBtn.addEventListener('click', function (e) {
+				e.preventDefault();
+				if (confirm('Are you sure you want to clear history?')) {
+					chrome.storage.local.set({ 'urlList': [] }, function () {
+						history.innerHTML = '';
+						var span = document.createElement('span');
+						span.classList.add('no-history');
+						span.appendChild(document.createTextNode('No history'));
+						history.appendChild(span);
+						paginationTopSpan.innerHTML = 'Page 1 of 1 pages | Total 0 records';
+						exportTxtBtn.disabled = true;
+						exportCsvBtn.disabled = true;
+						clearBtn.disabled = true;
+						exportTxtBtn.classList.add('disabled');
+						exportCsvBtn.classList.add('disabled');
+						clearBtn.classList.add('disabled');
+
+						chrome.browserAction.setBadgeText({ text: 'dfqwfqwqwqwf3' });
+
+					});
+				}
+			});
+
+			exportTxtBtn.addEventListener('click', function (e) {
+				e.preventDefault();
+				chrome.storage.local.get(['urlList'], function (result) {
+					var urlList = result.urlList;
+					if (urlList === undefined) {
+						urlList = [];
+					}
+					var text = '';
+					urlList.forEach(function (url) {
+						text += url.hostname + ',' + url.timestamp + ',' + url.path + '\n';
+					});
+					var blob = new Blob([text], { type: 'text/plain' });
+					var blobURL = URL.createObjectURL(blob);
+
+					// Create an anchor element to trigger the download
+					const anchor = document.createElement('a');
+					anchor.href = blobURL;
+					anchor.download = 'history.txt'; // Set the desired file name
+
+					// Programmatically click the anchor element to initiate the download
+					anchor.click();
+
+					// Clean up by revoking the object URL
+					URL.revokeObjectURL(blobURL);
+				});
+			});
+
+			exportCsvBtn.addEventListener('click', function (e) {
+				e.preventDefault();
+				chrome.storage.local.get(['urlList'], function (result) {
+					var urlList = result.urlList;
+					if (urlList === undefined) {
+						urlList = [];
+					}
+					var text = '';
+					urlList.forEach(function (url) {
+						text += url.hostname + ',' + url.timestamp + ',' + url.path + '\n';
+					});
+					var blob = new Blob([text], { type: 'text/csv' });
+					var blobURL = URL.createObjectURL(blob);
+					// chrome.downloads.download({
+					// 	url: url,
+					// 	filename: 'history.csv'
+					// });
+
+					// Create an anchor element to trigger the download
+					const anchor = document.createElement('a');
+					anchor.href = blobURL;
+					anchor.download = 'history.csv'; // Set the desired file name
+
+					// Programmatically click the anchor element to initiate the download
+					anchor.click();
+
+					// Clean up by revoking the object URL
+					URL.revokeObjectURL(blobURL);
+				});
+			});
+
 			var start = (page - 1) * perPage;
 			var end = start + perPage;
 			sortedUrlList.slice(start, end).forEach(function (url) {
 				var hostname = url.hostname;
 				var li = document.createElement('li');
 				var span = document.createElement('span');
-				var btn = document.createElement('button');
 				span.innerHTML = hostname + ' -- ' + new Date(url.timestamp).toLocaleString();
 				span.classList.add('url');
 				span.addEventListener('click', function (e) {
@@ -143,6 +229,8 @@ document.addEventListener('DOMContentLoaded', function () {
 					console.log(hostname);
 					chrome.tabs.create({ url: hostname });
 				});
+				var btn = document.createElement('button');
+				btn.classList.add('delete');
 				btn.appendChild(document.createTextNode('Delete'));
 				btn.addEventListener('click', function (e) {
 					e.preventDefault();
@@ -161,82 +249,5 @@ document.addEventListener('DOMContentLoaded', function () {
 				history.appendChild(li);
 			});
 		}
-		// chrome.storage.local.get(['is_active'], function (result) {
-		// 	console.log('Value currently is ' + result.is_active);
-		// 	var statusViewer = document.getElementById('status');
-		// 	if (result.is_active) {
-
-		// 	} else {
-		// 		statusViewer.innerHTML = 'Not Active';
-		// 	}
-		// });
-	});
-
-	clearBtn.addEventListener('click', function (e) {
-		e.preventDefault();
-		chrome.storage.local.set({ 'urlList': [] }, function () {
-			history.innerHTML = '';
-			var span = document.createElement('span');
-			span.appendChild(document.createTextNode('No history'));
-			history.appendChild(span);
-		});
-	});
-
-	exportTxtBtn.addEventListener('click', function (e) {
-		e.preventDefault();
-		chrome.storage.local.get(['urlList'], function (result) {
-			var urlList = result.urlList;
-			if (urlList === undefined) {
-				urlList = [];
-			}
-			var text = '';
-			urlList.forEach(function (url) {
-				text += url.hostname + ',' + url.timestamp + ',' + url.path + '\n';
-			});
-			var blob = new Blob([text], { type: 'text/plain' });
-			var blobURL = URL.createObjectURL(blob);
-
-			// Create an anchor element to trigger the download
-			const anchor = document.createElement('a');
-			anchor.href = blobURL;
-			anchor.download = 'history.txt'; // Set the desired file name
-
-			// Programmatically click the anchor element to initiate the download
-			anchor.click();
-
-			// Clean up by revoking the object URL
-			URL.revokeObjectURL(blobURL);
-		});
-	});
-
-	exportCsvBtn.addEventListener('click', function (e) {
-		e.preventDefault();
-		chrome.storage.local.get(['urlList'], function (result) {
-			var urlList = result.urlList;
-			if (urlList === undefined) {
-				urlList = [];
-			}
-			var text = '';
-			urlList.forEach(function (url) {
-				text += url.hostname + ',' + url.timestamp + ',' + url.path + '\n';
-			});
-			var blob = new Blob([text], { type: 'text/csv' });
-			var blobURL = URL.createObjectURL(blob);
-			// chrome.downloads.download({
-			// 	url: url,
-			// 	filename: 'history.csv'
-			// });
-
-			// Create an anchor element to trigger the download
-			const anchor = document.createElement('a');
-			anchor.href = blobURL;
-			anchor.download = 'history.csv'; // Set the desired file name
-
-			// Programmatically click the anchor element to initiate the download
-			anchor.click();
-
-			// Clean up by revoking the object URL
-			URL.revokeObjectURL(blobURL);
-		});
 	});
 });
